@@ -1,105 +1,16 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Level 1 Quiz | Hustle to the Quiz</title>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Level 1 Quiz | Hustle to the Quiz</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}body{min-height:100vh;background:#f4f4f4;color:#111;font-family:Arial;padding:16px}
-.wrap{max-width:650px;margin:auto}.top{background:#fff;padding:18px 20px;border-radius:12px;display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:16px}.name{font-weight:700}.score{font-weight:700}
-.card{background:#fff;border-radius:12px;padding:25px;box-shadow:0 5px 20px rgba(0,0,0,.05)}.state{text-align:center;color:#666;font-size:14px;margin-bottom:15px}.qnum{text-align:center;font-size:13px;color:#777;margin-bottom:10px}.question{text-align:center;font-size:23px;font-weight:700;line-height:1.4;margin-bottom:28px;white-space:pre-wrap}
-.symbols{display:grid;grid-template-columns:1fr 1fr;gap:14px}.symbol{height:120px;border:1px solid #ddd;border-radius:12px;background:#fafafa;font-size:50px;cursor:pointer}.symbol:hover{background:#f0f0f0}.symbol:disabled{opacity:.55;cursor:not-allowed}
-.notice{text-align:center;margin-top:18px;font-size:14px;color:#666;min-height:20px}.final-title{text-align:center;font-size:32px;font-weight:800;margin-bottom:8px}.final-subtitle{text-align:center;color:#666;margin-bottom:20px}.results-wrap{overflow:auto}.results-table{width:100%;border-collapse:collapse;min-width:520px}.results-table th,.results-table td{padding:11px;border-bottom:1px solid #ddd;text-align:left}.results-table th{font-size:12px;color:#666}.results-table .score-cell{text-align:right;font-weight:800}.results-table th:last-child{text-align:right}.results-table .winner td{font-weight:800}.logout{border:1px solid #ccc;background:#fff;height:36px;padding:0 12px;border-radius:6px;font-weight:600;cursor:pointer}
-@media(max-width:500px){.symbols{grid-template-columns:1fr 1fr}.symbol{height:105px;font-size:42px}.question{font-size:20px}}
-</style>
-</head>
-<body>
-<main class="wrap">
-<header class="top">
-<div class="name">{{ student_name }}</div>
-<div class="score">Score: <span id="score">0</span></div>
-<button class="logout" onclick="location.href='/logout'">EXIT</button>
-</header>
-<section class="card">
-<div id="state" class="state">Waiting for the quiz to start...</div>
-<div id="qnum" class="qnum"></div>
-<div id="question" class="question">Please wait for the quiz.</div>
-<div id="symbols" class="symbols">
-<button class="symbol" data-option="1">◆</button>
-<button class="symbol" data-option="2">●</button>
-<button class="symbol" data-option="3">▲</button>
-<button class="symbol" data-option="4">■</button>
-</div>
-<div id="notice" class="notice"></div>
-</section>
-</main>
+*{box-sizing:border-box;margin:0;padding:0}body{min-height:100vh;background:#f4f4f4;color:#111;font-family:Arial,Helvetica,sans-serif;padding:16px}.wrap{max-width:700px;margin:auto}.top{background:#fff;padding:18px 20px;border-radius:14px;display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px;box-shadow:0 4px 18px rgba(0,0,0,.05)}.name{font-weight:700}.score{font-weight:800}.logout{border:1px solid #ccc;background:#fff;height:36px;padding:0 12px;border-radius:7px;font-weight:600;cursor:pointer}.card{background:#fff;border-radius:14px;padding:25px;box-shadow:0 5px 20px rgba(0,0,0,.05)}.state{text-align:center;color:#666;font-size:14px;margin-bottom:15px}.qnum{text-align:center;font-size:13px;color:#777;margin-bottom:10px}.question{text-align:center;font-size:24px;font-weight:700;line-height:1.4;margin-bottom:28px;white-space:pre-wrap}.symbols{display:grid;grid-template-columns:1fr 1fr;gap:14px}.symbol{height:120px;border:1px solid #ddd;border-radius:12px;background:#fafafa;font-size:50px;cursor:pointer}.symbol:hover{background:#f0f0f0}.symbol:disabled{opacity:.5;cursor:not-allowed}.notice{text-align:center;margin-top:18px;font-size:14px;color:#666;min-height:20px}.result-title{text-align:center;font-size:34px;font-weight:800;margin-bottom:6px}.result-sub{text-align:center;color:#666;margin-bottom:20px}.result-wrap{overflow:auto}.results{width:100%;border-collapse:collapse;min-width:520px}.results th,.results td{padding:12px;border-bottom:1px solid #e5e5e5;text-align:left}.results th{font-size:12px;color:#666}.results .scorecell{font-weight:800;text-align:right}.results th:last-child{text-align:right}.me{font-weight:800}.waiting{text-align:center;padding:70px 10px;font-size:22px;font-weight:700}.small{color:#777;text-align:center;margin-top:15px;font-size:13px}
+@media(max-width:500px){.top{flex-wrap:wrap}.question{font-size:20px}.symbol{height:105px;font-size:42px}.result-title{font-size:28px}}
+</style></head>
+<body><main class="wrap"><header class="top"><div class="name">{{ student_name }}</div><div class="score">Score: <span id="score">0</span></div><button class="logout" onclick="location.href='/logout'">EXIT</button></header><section class="card" id="card"><div id="state" class="state">Waiting for the quiz to start...</div><div id="qnum" class="qnum"></div><div id="question" class="question">Please wait for the quiz.</div><div id="symbols" class="symbols"><button class="symbol" data-option="1">◆</button><button class="symbol" data-option="2">●</button><button class="symbol" data-option="3">▲</button><button class="symbol" data-option="4">■</button></div><div id="notice" class="notice"></div></section></main>
 <script>
-let currentId=null,answered=false;
-const buttons=[...document.querySelectorAll(".symbol")];
-
-buttons.forEach(btn=>btn.addEventListener("click",()=>answer(Number(btn.dataset.option))));
-
-async function poll(){
- try{
-  const r=await fetch("/api/quiz/state");const x=await r.json();
-  if(!x.success)return;
-  const q=x.current_question;
-  if(!x.active||!q){
-    currentId=null;answered=false;
-    buttons.forEach(b=>b.disabled=true);
-
-    if(x.results_visible){
-      await showFinalResults();
-    } else {
-      document.getElementById("state").textContent="Waiting for the quiz to start...";
-      document.getElementById("qnum").textContent="";
-      document.getElementById("question").textContent="Please wait for the quiz.";
-      document.getElementById("notice").textContent="";
-    }
-    return;
-  }
-
-  document.getElementById("symbols").style.display="grid";
-
-  if(currentId!==q.id){
-    currentId=q.id;answered=false;
-    buttons.forEach(b=>b.disabled=false);
-    document.getElementById("notice").textContent="";
-  }
-
-  document.getElementById("state").textContent=`Question ${x.current_number} of ${x.total}`;
-  document.getElementById("qnum").textContent=`${q.difficulty} • ${q.time_limit} seconds`;
-  document.getElementById("question").textContent=q.question;
- }catch(e){}
-}
-
-async function showFinalResults(){
- try{
-  const r=await fetch("/api/final-results");
-  const x=await r.json();
-  if(!r.ok||!x.success)return;
-  document.getElementById("state").textContent="FINAL RESULTS";
-  document.getElementById("qnum").textContent=`${x.results.length} participants • ${x.total_questions} questions`;
-  document.getElementById("question").innerHTML='<div class="final-title">FINAL RESULTS</div><div class="final-subtitle">Congratulations to all participants!</div><div class="results-wrap"><table class="results-table"><thead><tr><th>RANK</th><th>STUDENT</th><th>ENROLLMENT</th><th>SCORE</th></tr></thead><tbody>'+x.results.map(p=>`<tr class="${p.rank===1?'winner':''}"><td>${p.rank}</td><td>${esc(p.name)}</td><td>${esc(p.enrollment)}</td><td class="score-cell">${p.score} / ${x.total_questions}</td></tr>`).join('')+'</tbody></table></div>';
-  document.getElementById("symbols").style.display="none";
-  document.getElementById("notice").textContent="Final results are now displayed.";
- }catch(e){}
-}
-
-function esc(v){const d=document.createElement("div");d.textContent=v??"";return d.innerHTML}
-
-async function answer(option){
- if(answered||!currentId)return;
- answered=true;buttons.forEach(b=>b.disabled=true);
- try{
-  const r=await fetch("/api/quiz/answer",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question_id:currentId,selected_option:option})});
-  const x=await r.json();
-  if(!r.ok||!x.success){answered=false;buttons.forEach(b=>b.disabled=false);document.getElementById("notice").textContent=x.message||"Answer failed.";return}
-  document.getElementById("score").textContent=x.score;
-  document.getElementById("notice").textContent=x.correct?"Correct! +1":"Wrong answer. 0 points";
- }catch(e){answered=false;buttons.forEach(b=>b.disabled=false);document.getElementById("notice").textContent="Connection error. Try again."}
-}
-poll();setInterval(poll,800);
-setInterval(async()=>{try{const r=await fetch("/api/my-score");const x=await r.json();if(x.success)document.getElementById("score").textContent=x.score}catch(e){}},2000);
-</script>
-</body>
-</html>
+let currentId=null,answered=false,showingResults=false;const buttons=[...document.querySelectorAll('.symbol')];buttons.forEach(b=>b.onclick=()=>answer(+b.dataset.option));
+const esc=v=>{const d=document.createElement('div');d.textContent=v??'';return d.innerHTML};
+async function finalResults(){try{const r=await fetch('/api/final-results');const x=await r.json();if(!r.ok||!x.success)return false;showingResults=true;document.getElementById('state').textContent='QUIZ COMPLETED';document.getElementById('qnum').textContent='';document.getElementById('question').innerHTML='';document.getElementById('symbols').style.display='none';document.getElementById('notice').innerHTML='';renderResults(x.results,x.total_questions);return true}catch(e){return false}}
+function renderResults(results,total){const me=Number('{{ session.get("student_id", 0) }}');let html='<div class="result-title">FINAL RESULTS</div><div class="result-sub">All participants • '+total+' questions</div><div class="result-wrap"><table class="results"><thead><tr><th>RANK</th><th>STUDENT</th><th>ENROLLMENT</th><th>SCORE</th></tr></thead><tbody>';results.forEach(p=>{html+='<tr class="'+(p.id===me?'me':'')+'"><td>'+p.rank+'</td><td>'+esc(p.name)+(p.id===me?' (YOU)':'')+'</td><td>'+esc(p.enrollment)+'</td><td class="scorecell">'+p.score+' / '+total+'</td></tr>'});html+='</tbody></table></div><div class="small">Final leaderboard is now visible to everyone.</div>';document.getElementById('card').innerHTML=html}
+async function poll(){try{const r=await fetch('/api/quiz/state');const x=await r.json();if(!r.ok||!x.success)return;if(x.completed&&!x.active){await finalResults();return}if(showingResults){location.reload();return}if(!x.active||!x.current_question){currentId=null;answered=false;document.getElementById('state').textContent='Waiting for the quiz to start...';document.getElementById('qnum').textContent='';document.getElementById('question').textContent='Please wait for the quiz.';buttons.forEach(b=>b.disabled=true);return}const q=x.current_question;if(currentId!==q.id){currentId=q.id;answered=false;buttons.forEach(b=>b.disabled=false);document.getElementById('notice').textContent=''}document.getElementById('state').textContent='Question '+x.current_number+' of '+x.total;document.getElementById('qnum').textContent=q.difficulty+' • '+q.time_limit+' seconds';document.getElementById('question').textContent=q.question}catch(e){}}
+async function answer(option){if(answered||!currentId)return;answered=true;buttons.forEach(b=>b.disabled=true);try{const r=await fetch('/api/quiz/answer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question_id:currentId,selected_option:option})});const x=await r.json();if(!r.ok||!x.success){answered=false;buttons.forEach(b=>b.disabled=false);document.getElementById('notice').textContent=x.message||'Answer failed.';return}document.getElementById('score').textContent=x.score;document.getElementById('notice').textContent=x.correct?'Correct! +1':'Wrong answer. 0 points'}catch(e){answered=false;buttons.forEach(b=>b.disabled=false);document.getElementById('notice').textContent='Connection error. Try again.'}}
+async function score(){try{const r=await fetch('/api/my-score');const x=await r.json();if(x.success)document.getElementById('score').textContent=x.score}catch(e){}}poll();score();setInterval(poll,700);setInterval(score,1800);
+</script></body></html>

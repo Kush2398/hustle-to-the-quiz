@@ -1,35 +1,14 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Participants | Hustle to the Quiz</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}body{padding:20px;background:#f4f4f4;font-family:Arial;color:#111}.page{max-width:1100px;margin:auto}
-.top,.tablebox{background:#fff;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.05)}.top{padding:25px 30px;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:15px}
-h1{font-size:27px}.top p{color:#666;margin-top:5px;font-size:14px}.btn{height:43px;padding:0 17px;border-radius:7px;border:0;background:#111;color:#fff;font-weight:600;cursor:pointer}.outline{background:#fff;color:#111;border:1px solid #ccc}
-.tablebox{padding:20px;overflow:auto}table{width:100%;border-collapse:collapse;min-width:750px}th,td{text-align:left;padding:13px;border-bottom:1px solid #e5e5e5;font-size:14px}th{background:#f7f7f7;font-size:13px}.empty{text-align:center;color:#777;padding:45px}
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Participants | Hustle to the Quiz</title><style>
+*{box-sizing:border-box;margin:0;padding:0}body{padding:20px;background:#f4f4f4;font-family:Arial;color:#111}.page{max-width:1200px;margin:auto}.top,.tablebox{background:#fff;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.05)}.top{padding:25px 30px;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:15px}h1{font-size:27px}.top p{color:#666;margin-top:5px;font-size:14px}.btn{height:43px;padding:0 17px;border-radius:7px;border:0;background:#111;color:#fff;font-weight:600;cursor:pointer}.outline{background:#fff;color:#111;border:1px solid #ccc}.tablebox{padding:20px;overflow:auto}table{width:100%;border-collapse:collapse;min-width:1000px}th,td{text-align:left;padding:12px;border-bottom:1px solid #e5e5e5;font-size:14px}th{background:#f7f7f7;font-size:13px}.actions{display:flex;gap:7px}.edit{background:#111;color:#fff;border:0;padding:7px 10px;border-radius:6px;cursor:pointer}.delete{background:#fff;color:#b42318;border:1px solid #e0aaaa;padding:7px 10px;border-radius:6px;cursor:pointer}.empty{text-align:center;color:#777;padding:45px}.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:20px}.modal.show{display:flex}.modalbox{background:#fff;width:100%;max-width:480px;border-radius:14px;padding:25px}.modalbox h2{margin-bottom:18px}.field{margin-bottom:14px}.field label{display:block;font-weight:600;font-size:13px;margin-bottom:6px}.field input{width:100%;height:44px;border:1px solid #ccc;border-radius:7px;padding:0 12px;font-size:14px}.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}.modal-actions button{height:42px;padding:0 15px;border-radius:7px;cursor:pointer}.save{background:#111;color:#fff;border:0}.cancel{background:#fff;border:1px solid #ccc}
 @media(max-width:700px){body{padding:15px}.top{flex-direction:column;align-items:flex-start}}
-</style>
-</head>
-<body>
-<main class="page">
-<header class="top"><div><h1>Participants</h1><p>Registered students and current scores.</p></div><button class="btn outline" onclick="location.href='/admin'">← DASHBOARD</button></header>
-<section class="tablebox"><div id="content" class="empty">Loading participants...</div></section>
-</main>
+</style></head><body><main class="page"><header class="top"><div><h1>Participants</h1><p>Edit, remove and monitor registered participants.</p></div><button class="btn outline" onclick="location.href='/admin'">← DASHBOARD</button></header><section class="tablebox"><div id="content" class="empty">Loading participants...</div></section></main>
+<div id="modal" class="modal"><div class="modalbox"><h2>Edit Participant</h2><input type="hidden" id="editId"><div class="field"><label>Name</label><input id="editName" maxlength="100"></div><div class="field"><label>Enrollment No.</label><input id="editEnrollment" maxlength="100"></div><div class="field"><label>College</label><input id="editCollege" maxlength="150"></div><div class="modal-actions"><button class="cancel" onclick="closeModal()">CANCEL</button><button class="save" onclick="saveParticipant()">SAVE CHANGES</button></div></div></div>
 <script>
-async function load(){
- const box=document.getElementById("content");
- try{
-  const r=await fetch("/api/participants");const x=await r.json();
-  if(!r.ok||!x.success)throw Error(x.message||"Unable to load participants");
-  if(!x.participants.length){box.textContent="No participants have registered yet.";return}
-  box.className="";
-  box.innerHTML=`<table><thead><tr><th>#</th><th>Name</th><th>Enrollment</th><th>College</th><th>Answered</th><th>Score</th></tr></thead><tbody>
-  ${x.participants.map((p,i)=>`<tr><td>${i+1}</td><td>${esc(p.name)}</td><td>${esc(p.enrollment)}</td><td>${esc(p.college)}</td><td>${p.answered}</td><td><b>${p.score}</b></td></tr>`).join("")}</tbody></table>`;
- }catch(e){box.textContent=e.message}
-}
-function esc(v){const d=document.createElement("div");d.textContent=v??"";return d.innerHTML}
+const esc=v=>{const d=document.createElement('div');d.textContent=v??'';return d.innerHTML};let cache=[];
+async function load(){const box=document.getElementById('content');try{const r=await fetch('/api/participants');const x=await r.json();if(r.status===401){location.href='/';return}if(!r.ok||!x.success)throw Error(x.message||'Unable to load participants');cache=x.participants;if(!cache.length){box.className='empty';box.textContent='No participants have registered yet.';return}box.className='';box.innerHTML='<table><thead><tr><th>#</th><th>Name</th><th>Enrollment</th><th>College</th><th>Answered</th><th>Score</th><th>Actions</th></tr></thead><tbody>'+cache.map((p,i)=>'<tr><td>'+(i+1)+'</td><td>'+esc(p.name)+'</td><td>'+esc(p.enrollment)+'</td><td>'+esc(p.college)+'</td><td>'+p.answered+'</td><td><b>'+p.score+'</b></td><td><div class="actions"><button class="edit" onclick="openEdit('+p.id+')">EDIT</button><button class="delete" onclick="deleteParticipant('+p.id+')">DELETE</button></div></td></tr>').join('')+'</tbody></table>'}catch(e){box.textContent=e.message}}
+function openEdit(id){const p=cache.find(x=>x.id===id);if(!p)return;document.getElementById('editId').value=id;document.getElementById('editName').value=p.name;document.getElementById('editEnrollment').value=p.enrollment;document.getElementById('editCollege').value=p.college;document.getElementById('modal').classList.add('show')}
+function closeModal(){document.getElementById('modal').classList.remove('show')}
+async function saveParticipant(){const id=document.getElementById('editId').value;const body={name:document.getElementById('editName').value.trim(),enrollment:document.getElementById('editEnrollment').value.trim(),college:document.getElementById('editCollege').value.trim()};try{const r=await fetch('/api/participants/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const x=await r.json();if(!r.ok||!x.success){alert(x.message||'Update failed');return}closeModal();load()}catch(e){alert('Connection error.')}}
+async function deleteParticipant(id){const p=cache.find(x=>x.id===id);if(!p)return;if(!confirm('Delete '+p.name+' from the participant list? This also removes their recorded answers.'))return;try{const r=await fetch('/api/participants/'+id,{method:'DELETE'});const x=await r.json();if(!r.ok||!x.success){alert(x.message||'Delete failed');return}load()}catch(e){alert('Connection error.')}}
 load();setInterval(load,3000);
-</script>
-</body>
-</html>
+</script></body></html>
