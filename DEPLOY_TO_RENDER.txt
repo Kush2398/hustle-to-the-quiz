@@ -1,0 +1,30 @@
+HUSTLE TO THE QUIZ - RENDER DEPLOYMENT
+
+1. Create a GitHub repository named hustle-to-the-quiz.
+2. Upload this entire folder, including the templates folder.
+3. Open Render and choose New -> Web Service.
+4. Connect the GitHub repository.
+5. Runtime: Python 3.
+6. Build Command: pip install -r requirements.txt
+7. Start Command: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 120
+8. Plan: Free for testing.
+9. Add environment variables:
+   QUIZ_ADMIN_ID = your admin ID
+   QUIZ_ADMIN_PASSWORD = your admin password
+   SECRET_KEY = a long random secret (Render can generate it).
+10. Deploy.
+11. Open the generated https://....onrender.com URL.
+
+IMPORTANT FOR THE EVENT:
+- Use the ADMIN account only on the admin laptop/browser.
+- Students log in from their own phones.
+- Do not log in as a student in another tab of the same browser profile used by admin.
+  Flask sessions are browser-cookie based, so a student login in the same browser
+  replaces the admin session. This is the reason the screenshot showed
+  'Admin session expired' while the student page was working.
+
+DATABASE WARNING:
+The current app uses SQLite. Render Free services have ephemeral local storage,
+so database changes can be lost after a restart/redeploy/spin-down. For a real
+college event, use a persistent database (recommended: PostgreSQL) or a paid
+persistent disk. The free deployment is best for testing.
