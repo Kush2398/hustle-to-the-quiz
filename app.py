@@ -23,13 +23,8 @@ LETTERS = ["A", "B", "C", "D"]
 # ---------------------------------------------------------
 
 def get_db():
-    # One SQLite connection per request, with a short wait for concurrent
-    # polling/answer requests. WAL mode makes the live quiz much more reliable.
-    db = sqlite3.connect(DB_PATH, timeout=10)
+    db = sqlite3.connect(DB_PATH)
     db.row_factory = sqlite3.Row
-    db.execute("PRAGMA busy_timeout = 10000")
-    db.execute("PRAGMA journal_mode = WAL")
-    db.execute("PRAGMA foreign_keys = ON")
     return db
 
 
@@ -112,8 +107,6 @@ def admin_required(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
         if session.get("role") != "admin":
-            if request.path.startswith("/api/"):
-                return json_error("Admin session expired. Please log in again.", 401)
             return redirect(url_for("index"))
         return view(*args, **kwargs)
     return wrapped
@@ -123,8 +116,6 @@ def student_required(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
         if session.get("role") != "student":
-            if request.path.startswith("/api/"):
-                return json_error("Student session expired. Please log in again.", 401)
             return redirect(url_for("index"))
         return view(*args, **kwargs)
     return wrapped
@@ -716,11 +707,7 @@ def quiz_board():
 @app.post("/api/quiz/answer")
 @student_required
 def api_quiz_answer():
-    """Record one student's answer. Correct = 1 point, wrong = 0."""
-    data = request.get_json(silent=True)
-
-    if not isinstance(data, dict):
-        return json_error("Invalid request data.")
+    data = request.get_json(silent=True) or {}
 
     try:
         question_id = int(data.get("question_id"))
@@ -728,96 +715,57 @@ def api_quiz_answer():
     except (TypeError, ValueError):
         return json_error("Invalid answer data.")
 
-    if question_id <= 0:
-        return json_error("Invalid question.")
-
     if selected_option not in range(1, 5):
         return json_error("Invalid option.")
 
-    student_id = session.get("student_id")
-    if not student_id:
-        return json_error("Student session expired. Please log in again.", 401)
-
     db = get_db()
+    state = get_quiz_state(db)
 
-    try:
-        state = get_quiz_state(db)
-
-        if not state or not state["active"]:
-            return json_error("The quiz is not currently active.")
-
-        current = get_current_question(db, state)
-
-        if not current:
-            return json_error("There is no active question.")
-
-        if int(current["id"]) != question_id:
-            return json_error("This question is no longer active.")
-
-        existing = db.execute(
-            """SELECT id FROM answers
-               WHERE student_id = ? AND question_id = ?""",
-            (student_id, question_id)
-        ).fetchone()
-
-        if existing:
-            score = db.execute(
-                """SELECT COALESCE(SUM(points), 0) AS score
-                   FROM answers WHERE student_id = ?""",
-                (student_id,)
-            ).fetchone()["score"]
-            return json_error(
-                f"You have already answered this question. Your score is {score}.",
-                409
-            )
-
-        is_correct = int(selected_option == int(current["correct_option"]))
-        points = 1 if is_correct else 0
-
-        db.execute("BEGIN IMMEDIATE")
-        db.execute(
-            """INSERT INTO answers
-               (student_id, question_id, selected_option, is_correct, points)
-               VALUES (?, ?, ?, ?, ?)""",
-            (student_id, question_id, selected_option, is_correct, points)
-        )
-        db.commit()
-
-        score = db.execute(
-            """SELECT COALESCE(SUM(points), 0) AS score
-               FROM answers WHERE student_id = ?""",
-            (student_id,)
-        ).fetchone()["score"]
-
-        return json_ok(
-            correct=bool(is_correct),
-            points=points,
-            score=score,
-            message="Answer recorded successfully."
-        )
-
-    except sqlite3.IntegrityError as exc:
-        db.rollback()
-        app.logger.exception("Answer database integrity error")
-        if "UNIQUE" in str(exc).upper():
-            return json_error("You have already answered this question.", 409)
-        return json_error("Unable to save your answer.", 500)
-
-    except sqlite3.OperationalError:
-        db.rollback()
-        app.logger.exception("Answer database operational error")
-        return json_error(
-            "The quiz server is busy. Please select your answer again.",
-            503
-        )
-
-    except Exception:
-        db.rollback()
-        app.logger.exception("Unexpected answer error")
-        return json_error("Unable to record the answer. Please try again.", 500)
-
-    finally:
+    if not state["active"]:
         db.close()
+        return json_error("The quiz is not currently active.")
+
+    current = get_current_question(db, state)
+
+    if not current or current["id"] != question_id:
+        db.close()
+        return json_error("This question is no longer active.")
+
+    student_id = session.get("student_id")
+
+    existing = db.execute("""
+        SELECT id FROM answers
+        WHERE student_id = ? AND question_id = ?
+    """, (student_id, question_id)).fetchone()
+
+    if existing:
+        db.close()
+        return json_error("You have already answered this question.")
+
+    is_correct = int(selected_option == current["correct_option"])
+    points = 1 if is_correct else 0
+
+    db.execute("""
+        INSERT INTO answers
+        (student_id, question_id, selected_option, is_correct, points)
+        VALUES (?, ?, ?, ?, ?)
+    """, (student_id, question_id, selected_option, is_correct, points))
+
+    db.commit()
+
+    score = db.execute("""
+        SELECT COALESCE(SUM(points), 0) AS score
+        FROM answers
+        WHERE student_id = ?
+    """, (student_id,)).fetchone()["score"]
+
+    db.close()
+
+    return json_ok(
+        correct=bool(is_correct),
+        points=points,
+        score=score
+    )
 
 
 @app.get("/api/my-score")
@@ -845,6 +793,49 @@ def api_my_score():
 # ---------------------------------------------------------
 # RESULTS API
 # ---------------------------------------------------------
+
+@app.get("/api/final-results")
+def api_final_results():
+    """Public final leaderboard for the projector after the quiz finishes."""
+    db = get_db()
+    state = get_quiz_state(db)
+
+    # Do not reveal scores before a quiz has actually been started.
+    if not state["started_at"]:
+        db.close()
+        return json_error("Final results are not available yet.", 403)
+
+    # Final results are available only after the live quiz has stopped.
+    if state["active"]:
+        db.close()
+        return json_error("Quiz is still running.", 409)
+
+    rows = db.execute("""
+        SELECT
+            s.id,
+            s.name,
+            s.enrollment,
+            s.college,
+            COALESCE(SUM(a.points), 0) AS score,
+            COALESCE(SUM(a.is_correct), 0) AS correct,
+            COUNT(a.id) AS answered
+        FROM students s
+        LEFT JOIN answers a ON a.student_id = s.id
+        GROUP BY s.id
+        ORDER BY score DESC, correct DESC, s.name ASC
+    """).fetchall()
+
+    total_questions = len(get_question_ids(state))
+    db.close()
+
+    results = []
+    for rank, row in enumerate(rows, start=1):
+        item = dict(row)
+        item["rank"] = rank
+        results.append(item)
+
+    return json_ok(results=results, total_questions=total_questions)
+
 
 @app.get("/api/results")
 @admin_required
