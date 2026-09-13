@@ -72,9 +72,15 @@ def init_db():
             current_position INTEGER NOT NULL DEFAULT 0,
             started_at REAL,
             question_started_at REAL,
-            question_ids TEXT DEFAULT ''
+            question_ids TEXT DEFAULT '',
+            results_visible INTEGER NOT NULL DEFAULT 0
         );
     """)
+
+    # Upgrade existing databases created before final-results visibility was added.
+    cols = {row["name"] for row in db.execute("PRAGMA table_info(quiz_state)").fetchall()}
+    if "results_visible" not in cols:
+        db.execute("ALTER TABLE quiz_state ADD COLUMN results_visible INTEGER NOT NULL DEFAULT 0")
 
     row = db.execute("SELECT id FROM quiz_state WHERE id = 1").fetchone()
     if not row:
@@ -567,6 +573,7 @@ def api_quiz_state():
         "total": len(ids),
         "current_number": state["current_position"] + 1 if current else 0,
         "question_started_at": state["question_started_at"],
+        "results_visible": bool(state["results_visible"]),
         "current_question": public_question(current),
     }
 
@@ -602,7 +609,8 @@ def api_quiz_start():
             current_position = 0,
             started_at = ?,
             question_started_at = ?,
-            question_ids = ?
+            question_ids = ?,
+            results_visible = 0
         WHERE id = 1
     """, (now, now, ",".join(map(str, ids))))
 
@@ -664,6 +672,26 @@ def api_quiz_next():
         total=len(ids),
         current_question=public_question(current)
     )
+
+
+@app.post("/api/quiz/show-results")
+@admin_required
+def api_quiz_show_results():
+    db = get_db()
+    state = get_quiz_state(db)
+
+    if state["active"]:
+        db.close()
+        return json_error("Finish the quiz before showing final results.")
+
+    if not state["started_at"]:
+        db.close()
+        return json_error("Start and finish a quiz before showing results.")
+
+    db.execute("UPDATE quiz_state SET results_visible = 1 WHERE id = 1")
+    db.commit()
+    db.close()
+    return json_ok(message="Final results are now visible to the board and all students.")
 
 
 @app.post("/api/quiz/stop")
@@ -805,10 +833,14 @@ def api_final_results():
         db.close()
         return json_error("Final results are not available yet.", 403)
 
-    # Final results are available only after the live quiz has stopped.
+    # Final results are available only after the admin explicitly reveals them.
     if state["active"]:
         db.close()
         return json_error("Quiz is still running.", 409)
+
+    if not state["results_visible"]:
+        db.close()
+        return json_error("Final results have not been shown by the admin yet.", 403)
 
     rows = db.execute("""
         SELECT
