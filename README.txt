@@ -1,77 +1,26 @@
-# HUSTLE TO THE QUIZ
+HUSTLE TO THE QUIZ - LEVEL 1
 
-GCET Diploma IT event platform for Level 1 — Guess the Logo / live symbol-answer quiz.
+FINAL BEHAVIOR
+1. Admin starts the quiz.
+2. Students answer on their phones using only ◆ ● ▲ ■.
+3. Students see their own running score during the quiz.
+4. Admin can monitor all participants and scores.
+5. Admin can edit or delete participants when the quiz is not running.
+6. Admin clicks NEXT QUESTION after each question.
+7. After NEXT QUESTION is pressed on the last question, the quiz becomes COMPLETED.
+8. The final leaderboard automatically appears on the main Quiz Board and on every student phone.
+9. No admin "show results" button is required.
+10. If admin uses STOP before the last question, final results remain hidden.
 
-## Files
+IMPORTANT TESTING RULE
+Do not log in as admin and student in the same browser profile. Flask sessions use a browser cookie. Use the admin laptop/browser for admin and separate phones/browsers for students.
 
-- app.py — Flask backend, SQLite database, login, question bank, quiz control, scoring and APIs.
-- templates/index.html — single login page.
-- templates/admin.html — admin dashboard.
-- templates/questions.html — question management + bulk JSON import.
-- templates/participants.html — participant list.
-- templates/quiz_control.html — start/next/stop controls.
-- templates/quiz_board.html — projector/smart-board display.
-- templates/quiz.html — student phone interface.
-- templates/results.html — leaderboard/results.
-- database.db — created automatically when the app starts.
+RENDER
+Build command:
+pip install -r requirements.txt
 
-## Install
+Start command:
+gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 120
 
-Open the project folder in the VS Code terminal:
-
-    python -m pip install flask
-
-## Run
-
-    python app.py
-
-Then open:
-
-    http://127.0.0.1:5000/
-
-## Default admin login
-
-Name / Admin ID:
-    admin
-
-Enrollment No. / Password:
-    admin123
-
-For a real deployment, change these using environment variables:
-
-    QUIZ_ADMIN_ID
-    QUIZ_ADMIN_PASSWORD
-    SECRET_KEY
-
-## Quiz flow
-
-1. Admin logs in.
-2. Admin opens Question Management.
-3. Add questions individually or use Bulk Add.
-4. Admin opens Quiz Control and starts a new quiz.
-5. Open /quiz-board on the projector/smart board.
-6. Students log in from their phones and remain on /quiz.
-7. The board displays the question and four option symbols:
-   ◆  ●  ▲  ■
-8. Students select the matching symbol on their phone.
-9. Correct answer = +1.
-10. Wrong answer = 0.
-11. Admin presses NEXT QUESTION to move the board to the next question.
-12. Results page shows the leaderboard.
-
-## Bulk question JSON format
-
-[
-  {
-    "question": "Which language is used to structure a web page?",
-    "option_1": "HTML",
-    "option_2": "Python",
-    "option_3": "SQL",
-    "option_4": "C",
-    "correct_option": 1,
-    "difficulty": "Easy",
-    "time_limit": 20
-  }
-]
-
-No questions are built into the application. The admin creates the question bank.
+DATABASE NOTE
+This version uses SQLite. Render Free web-service storage is ephemeral, so use a persistent database for a real event if you need data to survive redeploys/restarts.
