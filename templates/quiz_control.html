@@ -21,6 +21,7 @@
 <button id="start" class="btn" onclick="startQuiz()">START NEW QUIZ</button>
 <button id="next" class="btn" onclick="nextQuestion()">NEXT QUESTION</button>
 <button id="stop" class="btn outline" onclick="stopQuiz()">STOP QUIZ</button>
+<button id="showResults" class="btn" onclick="showResults()">SHOW FINAL RESULTS</button>
 </div>
 <p class="link">Open the projector display in another tab: <a href="/quiz-board" target="_blank">QUIZ BOARD</a></p>
 </section>
@@ -33,6 +34,8 @@ async function state(){
  document.getElementById("number").textContent=x.active?`${x.current_number} / ${x.total}`:"—";
  document.getElementById("next").disabled=!x.active;
  document.getElementById("stop").disabled=!x.active;
+ document.getElementById("showResults").disabled=x.active || !x.results_visible && !x.started_at;
+ if(x.results_visible) document.getElementById("showResults").textContent="RESULTS SHOWN ✓"; else document.getElementById("showResults").textContent="SHOW FINAL RESULTS";
 }
 async function call(url){
  const r=await fetch(url,{method:"POST"});const x=await r.json();
@@ -42,6 +45,7 @@ async function call(url){
 function startQuiz(){if(confirm("Start a new quiz? Previous scores will be cleared."))call("/api/quiz/start")}
 function nextQuestion(){call("/api/quiz/next")}
 function stopQuiz(){if(confirm("Stop the live quiz?"))call("/api/quiz/stop")}
+function showResults(){if(confirm("Show the final results on the main quiz board and all student phones?"))call("/api/quiz/show-results")}
 state();setInterval(state,1000);
 </script>
 </body>

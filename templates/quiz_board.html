@@ -39,7 +39,13 @@ async function update(){
    return;
   }
 
-  // Once the quiz has finished, automatically show the final leaderboard.
+  // The admin explicitly reveals results after the quiz finishes.
+  if(!x.results_visible){
+   showingFinal=false;
+   document.getElementById("status").textContent="QUIZ FINISHED • RESULTS HIDDEN";
+   content.innerHTML='<div class="waiting">QUIZ FINISHED<br><span style="font-size:18px;color:#666">Waiting for admin to show final results...</span></div>';
+   return;
+  }
   const rr=await fetch("/api/final-results");
   const fx=await rr.json();
   if(rr.ok&&fx.success){
