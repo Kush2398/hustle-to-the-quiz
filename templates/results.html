@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Results | Hustle to the Quiz</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{padding:20px;background:#f4f4f4;font-family:Arial;color:#111}.page{max-width:1100px;margin:auto}
+.top,.box{background:#fff;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.05)}.top{padding:25px 30px;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:15px}h1{font-size:27px}.top p{color:#666;margin-top:5px;font-size:14px}
+.btn{height:43px;padding:0 17px;border:1px solid #ccc;border-radius:7px;background:#fff;font-weight:600;cursor:pointer}.box{padding:20px;overflow:auto}table{width:100%;border-collapse:collapse;min-width:700px}th,td{padding:13px;text-align:left;border-bottom:1px solid #e5e5e5;font-size:14px}th{background:#f7f7f7;font-size:13px}.rank{font-weight:700;font-size:16px}.empty{text-align:center;color:#777;padding:45px}
+@media(max-width:700px){body{padding:15px}.top{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+<main class="page">
+<header class="top"><div><h1>Results & Leaderboard</h1><p>Live participant scores.</p></div><button class="btn" onclick="location.href='/admin'">← DASHBOARD</button></header>
+<section class="box"><div id="content" class="empty">Loading results...</div></section>
+</main>
+<script>
+function esc(v){const d=document.createElement("div");d.textContent=v??"";return d.innerHTML}
+async function load(){
+ const box=document.getElementById("content");
+ try{
+  const r=await fetch("/api/results");const x=await r.json();
+  if(!r.ok||!x.success)throw Error(x.message||"Unable to load results");
+  if(!x.results.length){box.textContent="No participants yet.";return}
+  box.className="";
+  box.innerHTML=`<table><thead><tr><th>Rank</th><th>Name</th><th>Enrollment</th><th>College</th><th>Correct</th><th>Answered</th><th>Score</th></tr></thead><tbody>
+  ${x.results.map(p=>`<tr><td class="rank">${p.rank}</td><td>${esc(p.name)}</td><td>${esc(p.enrollment)}</td><td>${esc(p.college)}</td><td>${p.correct}</td><td>${p.answered}</td><td><b>${p.score}</b></td></tr>`).join("")}</tbody></table>`;
+ }catch(e){box.textContent=e.message}
+}
+load();setInterval(load,2000);
+</script>
+</body>
+</html>

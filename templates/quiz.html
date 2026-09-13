@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Level 1 Quiz | Hustle to the Quiz</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{min-height:100vh;background:#f4f4f4;color:#111;font-family:Arial;padding:16px}
+.wrap{max-width:650px;margin:auto}.top{background:#fff;padding:18px 20px;border-radius:12px;display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:16px}.name{font-weight:700}.score{font-weight:700}
+.card{background:#fff;border-radius:12px;padding:25px;box-shadow:0 5px 20px rgba(0,0,0,.05)}.state{text-align:center;color:#666;font-size:14px;margin-bottom:15px}.qnum{text-align:center;font-size:13px;color:#777;margin-bottom:10px}.question{text-align:center;font-size:23px;font-weight:700;line-height:1.4;margin-bottom:28px;white-space:pre-wrap}
+.symbols{display:grid;grid-template-columns:1fr 1fr;gap:14px}.symbol{height:120px;border:1px solid #ddd;border-radius:12px;background:#fafafa;font-size:50px;cursor:pointer}.symbol:hover{background:#f0f0f0}.symbol:disabled{opacity:.55;cursor:not-allowed}
+.notice{text-align:center;margin-top:18px;font-size:14px;color:#666;min-height:20px}.logout{border:1px solid #ccc;background:#fff;height:36px;padding:0 12px;border-radius:6px;font-weight:600;cursor:pointer}
+@media(max-width:500px){.symbols{grid-template-columns:1fr 1fr}.symbol{height:105px;font-size:42px}.question{font-size:20px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="top">
+<div class="name">{{ student_name }}</div>
+<div class="score">Score: <span id="score">0</span></div>
+<button class="logout" onclick="location.href='/logout'">EXIT</button>
+</header>
+<section class="card">
+<div id="state" class="state">Waiting for the quiz to start...</div>
+<div id="qnum" class="qnum"></div>
+<div id="question" class="question">Please wait for the quiz.</div>
+<div id="symbols" class="symbols">
+<button class="symbol" data-option="1">◆</button>
+<button class="symbol" data-option="2">●</button>
+<button class="symbol" data-option="3">▲</button>
+<button class="symbol" data-option="4">■</button>
+</div>
+<div id="notice" class="notice"></div>
+</section>
+</main>
+<script>
+let currentId=null,answered=false;
+const buttons=[...document.querySelectorAll(".symbol")];
+
+buttons.forEach(btn=>btn.addEventListener("click",()=>answer(Number(btn.dataset.option))));
+
+async function poll(){
+ try{
+  const r=await fetch("/api/quiz/state");const x=await r.json();
+  if(!x.success)return;
+  const q=x.current_question;
+  if(!x.active||!q){
+    currentId=null;answered=false;
+    document.getElementById("state").textContent="Waiting for the quiz to start...";
+    document.getElementById("qnum").textContent="";
+    document.getElementById("question").textContent="Please wait for the quiz.";
+    buttons.forEach(b=>b.disabled=true);
+    document.getElementById("notice").textContent="";
+    return;
+  }
+
+  if(currentId!==q.id){
+    currentId=q.id;answered=false;
+    buttons.forEach(b=>b.disabled=false);
+    document.getElementById("notice").textContent="";
+  }
+
+  document.getElementById("state").textContent=`Question ${x.current_number} of ${x.total}`;
+  document.getElementById("qnum").textContent=`${q.difficulty} • ${q.time_limit} seconds`;
+  document.getElementById("question").textContent=q.question;
+ }catch(e){}
+}
+
+async function answer(option){
+ if(answered||!currentId)return;
+ answered=true;buttons.forEach(b=>b.disabled=true);
+ try{
+  const r=await fetch("/api/quiz/answer",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question_id:currentId,selected_option:option})});
+  const x=await r.json();
+  if(!r.ok||!x.success){answered=false;buttons.forEach(b=>b.disabled=false);document.getElementById("notice").textContent=x.message||"Answer failed.";return}
+  document.getElementById("score").textContent=x.score;
+  document.getElementById("notice").textContent=x.correct?"Correct! +1":"Wrong answer. 0 points";
+ }catch(e){answered=false;buttons.forEach(b=>b.disabled=false);document.getElementById("notice").textContent="Connection error. Try again."}
+}
+poll();setInterval(poll,800);
+setInterval(async()=>{try{const r=await fetch("/api/my-score");const x=await r.json();if(x.success)document.getElementById("score").textContent=x.score}catch(e){}},2000);
+</script>
+</body>
+</html>

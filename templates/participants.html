@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Participants | Hustle to the Quiz</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{padding:20px;background:#f4f4f4;font-family:Arial;color:#111}.page{max-width:1100px;margin:auto}
+.top,.tablebox{background:#fff;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.05)}.top{padding:25px 30px;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:15px}
+h1{font-size:27px}.top p{color:#666;margin-top:5px;font-size:14px}.btn{height:43px;padding:0 17px;border-radius:7px;border:0;background:#111;color:#fff;font-weight:600;cursor:pointer}.outline{background:#fff;color:#111;border:1px solid #ccc}
+.tablebox{padding:20px;overflow:auto}table{width:100%;border-collapse:collapse;min-width:750px}th,td{text-align:left;padding:13px;border-bottom:1px solid #e5e5e5;font-size:14px}th{background:#f7f7f7;font-size:13px}.empty{text-align:center;color:#777;padding:45px}
+@media(max-width:700px){body{padding:15px}.top{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+<main class="page">
+<header class="top"><div><h1>Participants</h1><p>Registered students and current scores.</p></div><button class="btn outline" onclick="location.href='/admin'">← DASHBOARD</button></header>
+<section class="tablebox"><div id="content" class="empty">Loading participants...</div></section>
+</main>
+<script>
+async function load(){
+ const box=document.getElementById("content");
+ try{
+  const r=await fetch("/api/participants");const x=await r.json();
+  if(!r.ok||!x.success)throw Error(x.message||"Unable to load participants");
+  if(!x.participants.length){box.textContent="No participants have registered yet.";return}
+  box.className="";
+  box.innerHTML=`<table><thead><tr><th>#</th><th>Name</th><th>Enrollment</th><th>College</th><th>Answered</th><th>Score</th></tr></thead><tbody>
+  ${x.participants.map((p,i)=>`<tr><td>${i+1}</td><td>${esc(p.name)}</td><td>${esc(p.enrollment)}</td><td>${esc(p.college)}</td><td>${p.answered}</td><td><b>${p.score}</b></td></tr>`).join("")}</tbody></table>`;
+ }catch(e){box.textContent=e.message}
+}
+function esc(v){const d=document.createElement("div");d.textContent=v??"";return d.innerHTML}
+load();setInterval(load,3000);
+</script>
+</body>
+</html>
