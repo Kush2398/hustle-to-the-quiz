@@ -1,30 +1,21 @@
-HUSTLE TO THE QUIZ - RENDER DEPLOYMENT
+LOCAL XAMPP SETUP
+1. Start MySQL in XAMPP.
+2. Open phpMyAdmin and import database.sql, OR let app.py create the database/tables.
+3. Default MySQL settings: host 127.0.0.1, port 3306, user root, empty password.
+4. If your root account has a password, set MYSQL_PASSWORD before running:
+   Windows CMD: set MYSQL_PASSWORD=YOUR_PASSWORD
+5. Install packages: pip install -r requirements.txt
+6. Run: python app.py
+7. PC: http://127.0.0.1:5000
+8. Phones on same LAN: http://YOUR-PC-IP:5000
 
-1. Create a GitHub repository named hustle-to-the-quiz.
-2. Upload this entire folder, including the templates folder.
-3. Open Render and choose New -> Web Service.
-4. Connect the GitHub repository.
-5. Runtime: Python 3.
-6. Build Command: pip install -r requirements.txt
-7. Start Command: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 120
-8. Plan: Free for testing.
-9. Add environment variables:
-   QUIZ_ADMIN_ID = your admin ID
-   QUIZ_ADMIN_PASSWORD = your admin password
-   SECRET_KEY = a long random secret (Render can generate it).
-10. Deploy.
-11. Open the generated https://....onrender.com URL.
+ADMIN LOGIN
+Default ID: admin
+Default password: admin123
+You can change them with QUIZ_ADMIN_ID and QUIZ_ADMIN_PASSWORD.
 
-IMPORTANT FOR THE EVENT:
-- Use the ADMIN account only on the admin laptop/browser.
-- Students log in from their own phones.
-- Do not log in as a student in another tab of the same browser profile used by admin.
-  Flask sessions are browser-cookie based, so a student login in the same browser
-  replaces the admin session. This is the reason the screenshot showed
-  'Admin session expired' while the student page was working.
-
-DATABASE WARNING:
-The current app uses SQLite. Render Free services have ephemeral local storage,
-so database changes can be lost after a restart/redeploy/spin-down. For a real
-college event, use a persistent database (recommended: PostgreSQL) or a paid
-persistent disk. The free deployment is best for testing.
+IMPORTANT
+- XAMPP/MySQL on your PC is for LAN/local event use.
+- Do not use database.db.
+- __pycache__ and .pyc files are generated automatically by Python and are not required in the project ZIP.
+- All five events use the same MySQL database and are separated by event_id.
