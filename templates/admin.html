@@ -1,83 +1,12 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Admin Dashboard | Hustle to the Quiz</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{min-height:100vh;padding:20px;background:#f4f4f4;color:#111;font-family:Arial,Helvetica,sans-serif}
-.page{max-width:1100px;margin:auto}
-.top{background:#fff;padding:25px 30px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:20px;box-shadow:0 5px 20px rgba(0,0,0,.05)}
-h1{font-size:28px;margin-bottom:5px}.top p{color:#666;font-size:14px}
-.btn{height:44px;padding:0 18px;border:0;border-radius:7px;background:#111;color:#fff;font-weight:600;cursor:pointer}.btn:hover{background:#222}.outline{background:#fff;color:#111;border:1px solid #ccc}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
-.card{background:#fff;padding:28px;border-radius:12px;box-shadow:0 5px 20px rgba(0,0,0,.05)}
-.card h2{font-size:20px;margin-bottom:12px}.count{font-size:40px;font-weight:700}.card p{color:#666;font-size:14px;margin:5px 0 20px}.card .btn{width:100%}
-.status{margin-bottom:20px;padding:14px 18px;background:#fff;border-radius:10px;font-size:14px}
-.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#999;margin-right:7px}.live .dot{background:#198754}
-@media(max-width:700px){body{padding:15px}.top{flex-direction:column;align-items:flex-start;padding:22px}.grid{grid-template-columns:1fr}}
-</style>
-</head>
-<body>
-<main class="page">
-<header class="top">
-<div><h1>HUSTLE TO THE QUIZ</h1><p>Admin Dashboard</p></div>
-<button class="btn outline" onclick="location.href='/logout'">LOGOUT</button>
-</header>
-
-<div id="status" class="status">
-<span class="dot"></span><span id="statusText">Checking quiz status...</span>
-</div>
-
-<section class="grid">
-<article class="card">
-<h2>Questions</h2>
-<div class="count">{{ question_count }}</div>
-<p>Total questions available</p>
-<button class="btn" onclick="location.href='/questions'">MANAGE QUESTIONS</button>
-</article>
-
-<article class="card">
-<h2>Participants</h2>
-<div class="count">{{ student_count }}</div>
-<p>Registered participants</p>
-<button class="btn" onclick="location.href='/participants'">VIEW PARTICIPANTS</button>
-</article>
-
-<article class="card">
-<h2>Quiz Control</h2>
-<div class="count">{{ current_question_number }}/{{ total_quiz_questions }}</div>
-<p>Start and control the live quiz</p>
-<button class="btn" onclick="location.href='/quiz-control'">QUIZ CONTROL</button>
-</article>
-
-<article class="card">
-<h2>Results</h2>
-<div class="count">→</div>
-<p>View the live leaderboard and final scores</p>
-<button class="btn" onclick="location.href='/results'">VIEW RESULTS</button>
-</article>
-</section>
-</main>
-
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin Dashboard</title>
+<style>*{box-sizing:border-box}body{margin:0;background:#071426;color:#eef4ff;font-family:Arial;padding:22px}.wrap{max-width:1100px;margin:auto}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}.btn{height:44px;border:1px solid #304967;background:#12243d;color:#fff;border-radius:11px;padding:0 15px;font-weight:900;cursor:pointer}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}.card{background:#101f35;border:1px solid #29405f;border-radius:20px;padding:22px}.count{font-size:38px;font-weight:900}.events{display:grid;grid-template-columns:1fr 1fr;gap:12px}.event{padding:17px;border:1px solid #29405f;border-radius:15px;background:#12243d}.event h3{margin:0 0 7px}.event p{color:#9fb2ce;font-size:13px}.live{border-color:#53d49a}.event button{width:100%;height:40px;border:0;border-radius:9px;background:#5d8df6;color:white;font-weight:900;cursor:pointer}.links{display:flex;gap:10px;flex-wrap:wrap}.status{padding:13px;background:#12243d;border-radius:12px;color:#a9bdd6;margin-bottom:18px}@media(max-width:700px){.grid,.events{grid-template-columns:1fr}.top{align-items:flex-start;gap:12px}}
+</style></head><body><main class="wrap"><header class="top"><div><h1>HUSTLE TO THE QUIZ</h1><div>ADMIN DASHBOARD</div></div><button class="btn" onclick="location.href='/logout'">LOGOUT</button></header>
+<div id="status" class="status">Loading...</div><section class="grid"><div class="card"><div>PARTICIPANTS</div><div class="count">{{students}}</div><button class="btn" onclick="location.href='/participants'">MANAGE PARTICIPANTS</button></div><div class="card"><div>QUESTIONS</div><div class="count">{{questions}}</div><button class="btn" onclick="location.href='/questions'">MANAGE QUESTIONS</button></div></section>
+<div class="card" style="margin-top:16px"><h2>EVENT CONTROL</h2><div class="events" id="events"></div></div><div class="card" style="margin-top:16px"><div class="links"><button class="btn" onclick="location.href='/quiz-control'">QUIZ CONTROL</button><button class="btn" onclick="window.open('/quiz-board','_blank')">OPEN QUESTION BOARD</button><button class="btn" onclick="location.href='/results'">RESULTS</button></div></div></main>
 <script>
-async function update(){
- try{
-  const r=await fetch("/api/quiz/state");
-  const x=await r.json();
-  const box=document.getElementById("status");
-  const text=document.getElementById("statusText");
-  if(x.success&&x.active){
-    box.classList.add("live");
-    text.textContent=`QUIZ LIVE • Question ${x.current_number} of ${x.total}`;
-  }else{
-    box.classList.remove("live");
-    text.textContent="Quiz is not running.";
-  }
- }catch(e){}
-}
-update();setInterval(update,2000);
-</script>
-</body>
-</html>
+async function load(){try{const r=await fetch("/api/events"),x=await r.json();if(!x.success)return;document.getElementById("status").textContent=x.active?`LIVE: ${x.events.find(e=>e.id===x.current_event_id)?.event_name||""}`:"No event is currently live";
+document.getElementById("events").innerHTML=x.events.map(e=>`<div class="event ${e.status==='LIVE'?'live':''}"><h3>${esc(e.event_name)}</h3><p>${esc(e.description)} • ${e.question_count} questions • ${e.status}</p><button onclick="start(${e.id})">${e.status==='LIVE'?'RESTART EVENT':'START EVENT'}</button></div>`).join("")}catch(e){}}
+function esc(v){const d=document.createElement("div");d.textContent=v??"";return d.innerHTML}
+async function start(id){if(!confirm("Start this event? Its previous answers for this event will be cleared."))return;const r=await fetch("/api/quiz/start",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({event_id:id})});const x=await r.json();if(!r.ok||!x.success)alert(x.message||"Unable to start");load()}
+load();setInterval(load,1500)
+</script></body></html>

@@ -1,48 +1,10 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Quiz Control | Hustle to the Quiz</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}body{padding:20px;background:#f4f4f4;color:#111;font-family:Arial}.page{max-width:900px;margin:auto}
-.top,.panel{background:#fff;border-radius:12px;box-shadow:0 5px 20px rgba(0,0,0,.05)}.top{padding:25px 30px;display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:20px}h1{font-size:27px}.top p{color:#666;margin-top:5px;font-size:14px}
-.panel{padding:30px;text-align:center}.state{font-size:15px;color:#666;margin-bottom:20px}.number{font-size:52px;font-weight:700;margin-bottom:7px}.buttons{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}.btn{height:48px;padding:0 22px;border:0;border-radius:7px;background:#111;color:#fff;font-weight:600;cursor:pointer}.outline{background:#fff;color:#111;border:1px solid #ccc}.btn:disabled{opacity:.5;cursor:not-allowed}
-.link{margin-top:22px;color:#666;font-size:14px}.link a{color:#111;font-weight:600}
-@media(max-width:700px){body{padding:15px}.top{flex-direction:column;align-items:flex-start}.panel{padding:25px}.buttons{flex-direction:column}.btn{width:100%}}
-</style>
-</head>
-<body>
-<main class="page">
-<header class="top"><div><h1>Quiz Control</h1><p>Control the live Level 1 quiz.</p></div><button class="btn outline" onclick="location.href='/admin'">← DASHBOARD</button></header>
-<section class="panel">
-<div id="state" class="state">Checking quiz...</div>
-<div id="number" class="number">—</div>
-<div class="buttons">
-<button id="start" class="btn" onclick="startQuiz()">START NEW QUIZ</button>
-<button id="next" class="btn" onclick="nextQuestion()">NEXT QUESTION</button>
-<button id="stop" class="btn outline" onclick="stopQuiz()">STOP QUIZ</button>
-</div>
-<p class="link">Open the projector display in another tab: <a href="/quiz-board" target="_blank">QUIZ BOARD</a></p>
-</section>
-</main>
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Quiz Control</title>
+<style>*{box-sizing:border-box}body{margin:0;background:#071426;color:#eef4ff;font-family:Arial;padding:22px}.wrap{max-width:900px;margin:auto}.top,.panel{background:#101f35;border:1px solid #29405f;border-radius:22px;padding:24px;margin-bottom:16px}.top{display:flex;justify-content:space-between}.state{text-align:center;color:#9fb2ce}.num{text-align:center;font-size:56px;font-weight:900;margin:12px}.buttons{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}.btn{height:48px;border:0;border-radius:12px;padding:0 20px;background:#5d8df6;color:#fff;font-weight:900;cursor:pointer}.stop{background:#9b2c3d}.outline{background:#12243d;border:1px solid #304967}.select{width:100%;height:48px;border-radius:11px;padding:0 12px;margin-bottom:15px}.hint{text-align:center;color:#8fa5c2;margin-top:18px}
+</style></head><body><main class="wrap"><header class="top"><div><h1>Quiz Control</h1><div>Start, advance and stop the active event.</div></div><button class="btn outline" onclick="location.href='/admin'">DASHBOARD</button></header><section class="panel"><select id="event" class="select"></select><div id="state" class="state">Loading...</div><div id="num" class="num">—</div><div class="buttons"><button class="btn" onclick="start()">START SELECTED EVENT</button><button id="next" class="btn" onclick="call('/api/quiz/next')">NEXT QUESTION</button><button id="stop" class="btn stop" onclick="stop()">STOP EVENT → SHOW LEADERBOARD</button></div><p class="hint">STOP makes the leaderboard visible on the question board and all student devices.</p></section></main>
 <script>
-async function state(){
- const r=await fetch("/api/quiz/state");const x=await r.json();
- if(!x.success)return;
- document.getElementById("state").textContent=x.active?`QUIZ LIVE • Question ${x.current_number} of ${x.total}`:"Quiz is stopped.";
- document.getElementById("number").textContent=x.active?`${x.current_number} / ${x.total}`:"—";
- document.getElementById("next").disabled=!x.active;
- document.getElementById("stop").disabled=!x.active;
-}
-async function call(url){
- const r=await fetch(url,{method:"POST"});const x=await r.json();
- if(!r.ok||!x.success)alert(x.message||"Action failed");
- state();
-}
-function startQuiz(){if(confirm("Start a new quiz? Previous scores will be cleared."))call("/api/quiz/start")}
-function nextQuestion(){call("/api/quiz/next")}
-function stopQuiz(){if(confirm("Stop the live quiz?"))call("/api/quiz/stop")}
-state();setInterval(state,1000);
-</script>
-</body>
-</html>
+async function load(){const [er,sr]=await Promise.all([fetch("/api/events"),fetch("/api/quiz/state")]);const e=await er.json(),s=await sr.json();if(!e.success||!s.success)return;document.getElementById("event").innerHTML=e.events.map(v=>`<option value="${v.id}">${v.event_name}</option>`).join("");document.getElementById("state").textContent=s.active?`${s.event_name} • LIVE`:"No event live";document.getElementById("num").textContent=s.active?`${s.current_number} / ${s.total}`:"—";document.getElementById("next").disabled=!s.active;document.getElementById("stop").disabled=!s.active}
+async function start(){const r=await fetch("/api/quiz/start",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({event_id:Number(document.getElementById("event").value)})});const x=await r.json();if(!r.ok||!x.success)alert(x.message||"Start failed");load()}
+async function call(url){const r=await fetch(url,{method:"POST"}),x=await r.json();if(!r.ok||!x.success)alert(x.message||"Action failed");load()}
+function stop(){if(confirm("Stop this event and show the leaderboard everywhere?"))call("/api/quiz/stop")}
+load();setInterval(load,1000)
+</script></body></html>

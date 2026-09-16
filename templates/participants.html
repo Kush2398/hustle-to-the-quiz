@@ -1,35 +1,12 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Participants | Hustle to the Quiz</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}body{padding:20px;background:#f4f4f4;font-family:Arial;color:#111}.page{max-width:1100px;margin:auto}
-.top,.tablebox{background:#fff;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.05)}.top{padding:25px 30px;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:15px}
-h1{font-size:27px}.top p{color:#666;margin-top:5px;font-size:14px}.btn{height:43px;padding:0 17px;border-radius:7px;border:0;background:#111;color:#fff;font-weight:600;cursor:pointer}.outline{background:#fff;color:#111;border:1px solid #ccc}
-.tablebox{padding:20px;overflow:auto}table{width:100%;border-collapse:collapse;min-width:750px}th,td{text-align:left;padding:13px;border-bottom:1px solid #e5e5e5;font-size:14px}th{background:#f7f7f7;font-size:13px}.empty{text-align:center;color:#777;padding:45px}
-@media(max-width:700px){body{padding:15px}.top{flex-direction:column;align-items:flex-start}}
-</style>
-</head>
-<body>
-<main class="page">
-<header class="top"><div><h1>Participants</h1><p>Registered students and current scores.</p></div><button class="btn outline" onclick="location.href='/admin'">← DASHBOARD</button></header>
-<section class="tablebox"><div id="content" class="empty">Loading participants...</div></section>
-</main>
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Participants</title>
+<style>*{box-sizing:border-box}body{margin:0;background:#071426;color:#eef4ff;font-family:Arial;padding:22px}.wrap{max-width:1200px;margin:auto}.top,.box{background:#101f35;border:1px solid #29405f;border-radius:20px;padding:22px;margin-bottom:16px}.top{display:flex;justify-content:space-between}.btn{height:42px;border:1px solid #304967;background:#12243d;color:#fff;border-radius:10px;padding:0 14px;font-weight:900;cursor:pointer}.table{width:100%;border-collapse:collapse;min-width:850px}.table th,.table td{padding:12px;border-bottom:1px solid #29405f;text-align:left}.actions{display:flex;gap:7px}.danger{background:#8f2c3b}.modal{display:none;position:fixed;inset:0;background:#0009;place-items:center;padding:20px}.modal.show{display:grid}.modalbox{width:min(500px,100%);background:#101f35;border:1px solid #385273;border-radius:18px;padding:24px}.field{margin:10px 0}.field input{width:100%;height:44px;border-radius:9px;border:1px solid #385273;padding:0 12px}@media(max-width:700px){.top{gap:10px}.table{min-width:850px}}
+</style></head><body><main class="wrap"><header class="top"><div><h1>Participants</h1><div>Live rank, score and participant management.</div></div><button class="btn" onclick="location.href='/admin'">DASHBOARD</button></header><section class="box"><div id="content">Loading...</div></section></main>
+<div id="modal" class="modal"><div class="modalbox"><h2>Edit Participant</h2><div class="field"><input id="pName" placeholder="Name"></div><div class="field"><input id="pEnroll" placeholder="Enrollment"></div><div class="field"><input id="pCollege" placeholder="College"></div><button class="btn" onclick="save()">SAVE</button> <button class="btn" onclick="closeM()">CANCEL</button></div></div>
 <script>
-async function load(){
- const box=document.getElementById("content");
- try{
-  const r=await fetch("/api/participants");const x=await r.json();
-  if(!r.ok||!x.success)throw Error(x.message||"Unable to load participants");
-  if(!x.participants.length){box.textContent="No participants have registered yet.";return}
-  box.className="";
-  box.innerHTML=`<table><thead><tr><th>#</th><th>Name</th><th>Enrollment</th><th>College</th><th>Answered</th><th>Score</th></tr></thead><tbody>
-  ${x.participants.map((p,i)=>`<tr><td>${i+1}</td><td>${esc(p.name)}</td><td>${esc(p.enrollment)}</td><td>${esc(p.college)}</td><td>${p.answered}</td><td><b>${p.score}</b></td></tr>`).join("")}</tbody></table>`;
- }catch(e){box.textContent=e.message}
-}
-function esc(v){const d=document.createElement("div");d.textContent=v??"";return d.innerHTML}
-load();setInterval(load,3000);
-</script>
-</body>
-</html>
+let editId=null,editObj=null;function esc(v){const d=document.createElement("div");d.textContent=v??"";return d.innerHTML}
+async function load(){const r=await fetch("/api/participants"),x=await r.json();if(!x.success)return;document.getElementById("content").innerHTML=x.participants.length?`<div style="overflow:auto"><table class="table"><thead><tr><th>RANK</th><th>NAME</th><th>ENROLLMENT</th><th>COLLEGE</th><th>SCORE</th><th>ANSWERED</th><th>ACTIONS</th></tr></thead><tbody>${x.participants.map(p=>`<tr><td><b>#${p.rank}</b></td><td>${esc(p.name)}</td><td>${esc(p.enrollment)}</td><td>${esc(p.college)}</td><td><b>${p.score}</b></td><td>${p.answered}</td><td><div class="actions"><button class="btn" onclick='openM(${JSON.stringify(p)})'>EDIT</button><button class="btn danger" onclick="del(${p.id})">DELETE</button></div></td></tr>`).join("")}</tbody></table></div>`:"No participants yet."}
+function openM(p){editId=p.id;editObj=p;pName.value=p.name;pEnroll.value=p.enrollment;pCollege.value=p.college;modal.classList.add("show")}function closeM(){modal.classList.remove("show")}
+async function save(){const r=await fetch("/api/participants/"+editId,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:pName.value,enrollment:pEnroll.value,college:pCollege.value})}),x=await r.json();if(!r.ok||!x.success)return alert(x.message||"Update failed");closeM();load()}
+async function del(id){if(!confirm("Delete this participant and all their answers?"))return;const r=await fetch("/api/participants/"+id,{method:"DELETE"}),x=await r.json();if(!r.ok||!x.success)return alert(x.message||"Delete failed");load()}
+load();setInterval(load,2000)
+</script></body></html>

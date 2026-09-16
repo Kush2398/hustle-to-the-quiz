@@ -1,34 +1,8 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Results | Hustle to the Quiz</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}body{padding:20px;background:#f4f4f4;font-family:Arial;color:#111}.page{max-width:1100px;margin:auto}
-.top,.box{background:#fff;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.05)}.top{padding:25px 30px;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:15px}h1{font-size:27px}.top p{color:#666;margin-top:5px;font-size:14px}
-.btn{height:43px;padding:0 17px;border:1px solid #ccc;border-radius:7px;background:#fff;font-weight:600;cursor:pointer}.box{padding:20px;overflow:auto}table{width:100%;border-collapse:collapse;min-width:700px}th,td{padding:13px;text-align:left;border-bottom:1px solid #e5e5e5;font-size:14px}th{background:#f7f7f7;font-size:13px}.rank{font-weight:700;font-size:16px}.empty{text-align:center;color:#777;padding:45px}
-@media(max-width:700px){body{padding:15px}.top{flex-direction:column;align-items:flex-start}}
-</style>
-</head>
-<body>
-<main class="page">
-<header class="top"><div><h1>Results & Leaderboard</h1><p>Live participant scores.</p></div><button class="btn" onclick="location.href='/admin'">← DASHBOARD</button></header>
-<section class="box"><div id="content" class="empty">Loading results...</div></section>
-</main>
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Results</title>
+<style>*{box-sizing:border-box}body{margin:0;background:#071426;color:#eef4ff;font-family:Arial;padding:22px}.wrap{max-width:1100px;margin:auto}.top,.box{background:#101f35;border:1px solid #29405f;border-radius:20px;padding:22px;margin-bottom:16px}.top{display:flex;justify-content:space-between}.btn{height:42px;border:1px solid #304967;background:#12243d;color:#fff;border-radius:10px;padding:0 14px;font-weight:900}.table{width:100%;border-collapse:collapse;min-width:750px}.table th,.table td{padding:13px;border-bottom:1px solid #29405f;text-align:left}.table th{color:#8fa5c2;font-size:12px}.score{font-weight:900}
+</style></head><body><main class="wrap"><header class="top"><div><h1>Results</h1><div>Current leaderboard from MySQL.</div></div><button class="btn" onclick="location.href='/admin'">DASHBOARD</button></header><section class="box"><div id="content">Loading...</div></section></main>
 <script>
 function esc(v){const d=document.createElement("div");d.textContent=v??"";return d.innerHTML}
-async function load(){
- const box=document.getElementById("content");
- try{
-  const r=await fetch("/api/results");const x=await r.json();
-  if(!r.ok||!x.success)throw Error(x.message||"Unable to load results");
-  if(!x.results.length){box.textContent="No participants yet.";return}
-  box.className="";
-  box.innerHTML=`<table><thead><tr><th>Rank</th><th>Name</th><th>Enrollment</th><th>College</th><th>Correct</th><th>Answered</th><th>Score</th></tr></thead><tbody>
-  ${x.results.map(p=>`<tr><td class="rank">${p.rank}</td><td>${esc(p.name)}</td><td>${esc(p.enrollment)}</td><td>${esc(p.college)}</td><td>${p.correct}</td><td>${p.answered}</td><td><b>${p.score}</b></td></tr>`).join("")}</tbody></table>`;
- }catch(e){box.textContent=e.message}
-}
-load();setInterval(load,2000);
-</script>
-</body>
-</html>
+async function load(){try{let r=await fetch("/api/leaderboard"),x=await r.json();if(!x.success)throw Error(x.message);content.innerHTML=x.results.length?`<div style="overflow:auto"><table class="table"><thead><tr><th>RANK</th><th>NAME</th><th>ENROLLMENT</th><th>COLLEGE</th><th>SCORE</th><th>ANSWERED</th></tr></thead><tbody>${x.results.map(p=>`<tr><td>#${p.rank}</td><td>${esc(p.name)}</td><td>${esc(p.enrollment)}</td><td>${esc(p.college)}</td><td class="score">${p.score}</td><td>${p.answered}</td></tr>`).join("")}</tbody></table></div>`:"No participants yet."}catch(e){content.textContent=e.message}}
+load();setInterval(load,1500)
+</script></body></html>

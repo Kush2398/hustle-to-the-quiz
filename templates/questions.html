@@ -1,178 +1,20 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Questions | Hustle to the Quiz</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{padding:20px;background:#f4f4f4;color:#111;font-family:Arial,Helvetica,sans-serif}
-.page{max-width:1100px;margin:auto}
-.top,.toolbar,.item,.empty{background:#fff;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.05)}
-.top{padding:25px 30px;display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:20px}
-h1{font-size:27px}.top p{color:#666;margin-top:5px;font-size:14px}
-.btn{height:44px;padding:0 18px;border:0;border-radius:7px;background:#111;color:#fff;font-weight:600;cursor:pointer}.btn:hover{background:#222}.outline{background:#fff;color:#111;border:1px solid #ccc}
-.toolbar{padding:18px 20px;display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:18px}
-.actions{display:flex;gap:10px}.danger{background:#fff;color:#111;border:1px solid #ccc}
-.list{display:flex;flex-direction:column;gap:15px}
-.item{padding:22px}.head{display:flex;justify-content:space-between;gap:15px;margin-bottom:14px}.num{font-size:12px;color:#666;font-weight:700;margin-bottom:5px}.q{font-size:17px;font-weight:600;line-height:1.45;white-space:pre-wrap}
-.badges{display:flex;gap:7px;flex-wrap:wrap}.badge{padding:5px 9px;border-radius:5px;background:#f0f0f0;font-size:12px;color:#555;font-weight:600}
-.options{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:15px}.option{padding:11px;border:1px solid #ddd;border-radius:7px;line-height:1.4}.correct{background:#eef8f0;border-color:#9acda4;color:#216e39;font-weight:600}
-.item-actions{display:flex;gap:9px}.small{height:38px;padding:0 14px;border-radius:6px;font-size:13px}.delete{background:#111;color:#fff;border:0}
-.empty{padding:60px 25px;text-align:center;color:#777}.empty h3{color:#111;margin-bottom:8px}
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-start;justify-content:center;padding:20px;overflow:auto}.overlay.show{display:flex}
-.modal{background:#fff;width:100%;max-width:700px;margin:20px auto;padding:28px;border-radius:12px}
-.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}.close{border:0;background:#eee;width:35px;height:35px;border-radius:6px;font-size:20px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.field{margin-bottom:4px}.full{grid-column:1/-1}
-label{display:block;font-size:14px;font-weight:600;margin-bottom:7px}
-input,textarea,select{width:100%;border:1px solid #ccc;border-radius:7px;padding:11px;font-size:14px;outline:none}input,select{height:45px}textarea{min-height:100px;resize:vertical}
-.corrects{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.corrects input{display:none}.corrects label{height:42px;border:1px solid #ccc;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.corrects input:checked+label{background:#111;color:#fff;border-color:#111}
-.footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
-.bulk-info{font-size:13px;color:#666;margin-top:10px;line-height:1.5}
-pre{white-space:pre-wrap;background:#f6f6f6;padding:12px;border-radius:7px;font-size:12px;margin-top:8px}
-@media(max-width:700px){body{padding:15px}.top,.toolbar{flex-direction:column;align-items:stretch}.grid,.options{grid-template-columns:1fr}.full{grid-column:auto}.corrects{grid-template-columns:1fr 1fr}.head{flex-direction:column}.footer{flex-direction:column-reverse}.footer button{width:100%}}
-</style>
-</head>
-<body>
-<main class="page">
-<header class="top">
-<div><h1>Question Management</h1><p>Add, edit, delete or bulk-import questions.</p></div>
-<button class="btn outline" onclick="location.href='/admin'">← DASHBOARD</button>
-</header>
-
-<section class="toolbar">
-<strong>Total Questions: <span id="count">0</span></strong>
-<div class="actions">
-<button class="btn" onclick="openAdd()">+ ADD QUESTION</button>
-<button class="btn danger" onclick="openBulk()">BULK ADD</button>
-</div>
-</section>
-
-<section id="list" class="list"></section>
-</main>
-
-<div id="overlay" class="overlay">
-<section class="modal">
-<div class="modal-head"><h2 id="modalTitle">Add Question</h2><button class="close" onclick="closeModal()">×</button></div>
-
-<form id="form">
-<div class="grid">
-<div class="field full"><label>Question / Riddle</label><textarea id="question" required placeholder="Enter the riddle or question"></textarea></div>
-<div class="field"><label>Option 1</label><input id="o1" required></div>
-<div class="field"><label>Option 2</label><input id="o2" required></div>
-<div class="field"><label>Option 3</label><input id="o3" required></div>
-<div class="field"><label>Option 4</label><input id="o4" required></div>
-<div class="field full"><label>Correct Answer</label>
-<div class="corrects">
-<div><input type="radio" id="c1" name="correct" value="1"><label for="c1">Option 1</label></div>
-<div><input type="radio" id="c2" name="correct" value="2"><label for="c2">Option 2</label></div>
-<div><input type="radio" id="c3" name="correct" value="3"><label for="c3">Option 3</label></div>
-<div><input type="radio" id="c4" name="correct" value="4"><label for="c4">Option 4</label></div>
-</div></div>
-<div class="field"><label>Difficulty</label><select id="difficulty"><option>Easy</option><option selected>Medium</option><option>Hard</option></select></div>
-<div class="field"><label>Time Limit (seconds)</label><input id="time" type="number" min="5" max="300" value="20" required></div>
-</div>
-<div class="footer"><button type="button" class="btn danger" onclick="closeModal()">CANCEL</button><button id="save" class="btn">SAVE QUESTION</button></div>
-</form>
-</section>
-</div>
-
-<div id="bulkOverlay" class="overlay">
-<section class="modal">
-<div class="modal-head"><h2>Bulk Add Questions</h2><button class="close" onclick="closeBulk()">×</button></div>
-<p class="bulk-info">Paste a JSON array. Each question needs: question, option_1, option_2, option_3, option_4, correct_option (1-4). Difficulty and time_limit are optional.</p>
-<pre>[{"question":"Which language is used for web pages?","option_1":"HTML","option_2":"Python","option_3":"C","option_4":"SQL","correct_option":1,"difficulty":"Easy","time_limit":20}]</pre>
-<textarea id="bulkText" style="width:100%;min-height:260px;margin-top:12px" placeholder="Paste your JSON here..."></textarea>
-<div class="footer"><button class="btn danger" onclick="closeBulk()">CANCEL</button><button class="btn" onclick="submitBulk()">IMPORT QUESTIONS</button></div>
-</section>
-</div>
-
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Questions</title>
+<style>*{box-sizing:border-box}body{margin:0;background:#071426;color:#eef4ff;font-family:Arial;padding:22px}.wrap{max-width:1150px;margin:auto}.top,.toolbar,.item{background:#101f35;border:1px solid #29405f;border-radius:20px;padding:22px;margin-bottom:16px}.top,.toolbar{display:flex;justify-content:space-between;gap:12px;align-items:center}.select{height:44px;border-radius:10px;padding:0 12px;min-width:250px}.btn{height:42px;border:0;border-radius:10px;padding:0 14px;background:#5d8df6;color:#fff;font-weight:900;cursor:pointer}.dark{background:#12243d;border:1px solid #304967}.danger{background:#8f2c3b}.item .q{font-size:18px;font-weight:800;margin:10px 0}.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}.opt{padding:11px;border:1px solid #304967;border-radius:9px}.correct{border-color:#53d49a;background:#103529}.actions{margin-top:12px;display:flex;gap:8px}.overlay{display:none;position:fixed;inset:0;background:#0009;place-items:center;padding:20px}.overlay.show{display:grid}.modal{width:min(700px,100%);max-height:90vh;overflow:auto;background:#101f35;border:1px solid #385273;border-radius:20px;padding:24px}.field{margin:10px 0}.field input,.field textarea,.field select{width:100%;padding:11px;border-radius:9px;border:1px solid #385273}.field textarea{min-height:90px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:700px){.opts,.grid{grid-template-columns:1fr}.top,.toolbar{flex-direction:column;align-items:stretch}}
+</style></head><body><main class="wrap"><header class="top"><div><h1>Question Manager</h1><div>Add, edit, delete and bulk import questions.</div></div><button class="btn dark" onclick="location.href='/admin'">DASHBOARD</button></header><section class="toolbar"><select id="eventFilter" class="select"></select><div><button class="btn" onclick="openM()">ADD QUESTION</button><button class="btn dark" onclick="openBulk()">BULK ADD</button></div></section><section id="list"></section></main>
+<div id="overlay" class="overlay"><div class="modal"><h2 id="title">Add Question</h2><form id="form"><div class="field"><label>Event</label><select id="eventId"></select></div><div class="field"><textarea id="question" placeholder="Question"></textarea></div><div class="grid"><div class="field"><input id="o1" placeholder="Option 1"></div><div class="field"><input id="o2" placeholder="Option 2"></div><div class="field"><input id="o3" placeholder="Option 3"></div><div class="field"><input id="o4" placeholder="Option 4"></div></div><div class="grid"><div class="field"><select id="difficulty"><option>Easy</option><option selected>Medium</option><option>Hard</option></select></div><div class="field"><input id="time" type="number" value="20" min="5" max="300"></div></div><div class="field"><label>Correct option</label><select id="correct"><option value="1">Option 1</option><option value="2">Option 2</option><option value="3">Option 3</option><option value="4">Option 4</option></select></div><button class="btn">SAVE</button> <button type="button" class="btn dark" onclick="closeM()">CANCEL</button></form></div></div>
+<div id="bulk" class="overlay"><div class="modal"><h2>Bulk Add</h2><p>Use an array of objects. Each object must include event_id, question, option_1..4, correct_option, difficulty and time_limit.</p><textarea id="bulkText" style="width:100%;min-height:300px"></textarea><button class="btn" onclick="submitBulk()">IMPORT</button> <button class="btn dark" onclick="closeBulk()">CANCEL</button></div></div>
 <script>
-let editingId=null;
-const list=document.getElementById("list");
-
+let editing=null;
 function esc(v){const d=document.createElement("div");d.textContent=v??"";return d.innerHTML}
-function openAdd(){
- editingId=null;document.getElementById("form").reset();
- document.getElementById("modalTitle").textContent="Add Question";
- document.getElementById("save").textContent="SAVE QUESTION";
- document.getElementById("difficulty").value="Medium";
- document.getElementById("time").value=20;
- document.getElementById("overlay").classList.add("show");
-}
-function openBulk(){document.getElementById("bulkText").value="";document.getElementById("bulkOverlay").classList.add("show")}
-function closeModal(){document.getElementById("overlay").classList.remove("show");editingId=null}
-function closeBulk(){document.getElementById("bulkOverlay").classList.remove("show")}
-
-async function load(){
- list.innerHTML='<div class="empty">Loading questions...</div>';
- try{
-  const r=await fetch("/api/questions");const x=await r.json();
-  if(!r.ok||!x.success)throw Error(x.message||"Unable to load questions");
-  document.getElementById("count").textContent=x.questions.length;
-  if(!x.questions.length){list.innerHTML='<div class="empty"><h3>No Questions Added</h3><p>Add your first question or use Bulk Add.</p></div>';return}
-  list.innerHTML="";
-  x.questions.forEach((q,i)=>{
-   const el=document.createElement("article");el.className="item";
-   el.innerHTML=`
-   <div class="head"><div><div class="num">QUESTION ${i+1}</div><div class="q">${esc(q.question)}</div></div>
-   <div class="badges"><span class="badge">${esc(q.difficulty)}</span><span class="badge">${q.time_limit}s</span></div></div>
-   <div class="options">
-   <div class="option ${q.correct_option===1?"correct":""}"><b>1.</b> ${esc(q.option_1)}</div>
-   <div class="option ${q.correct_option===2?"correct":""}"><b>2.</b> ${esc(q.option_2)}</div>
-   <div class="option ${q.correct_option===3?"correct":""}"><b>3.</b> ${esc(q.option_3)}</div>
-   <div class="option ${q.correct_option===4?"correct":""}"><b>4.</b> ${esc(q.option_4)}</div>
-   </div>
-   <div class="item-actions"><button class="btn small" onclick="editQ(${q.id})">EDIT</button><button class="btn small delete" onclick="deleteQ(${q.id})">DELETE</button></div>`;
-   list.appendChild(el);
-  });
- }catch(e){list.innerHTML=`<div class="empty"><h3>Unable to Load Questions</h3><p>${esc(e.message)}</p></div>`}
-}
-
-async function editQ(id){
- const r=await fetch("/api/questions");const x=await r.json();const q=x.questions.find(v=>v.id===id);
- if(!q)return alert("Question not found.");
- editingId=id;
- document.getElementById("modalTitle").textContent="Edit Question";
- document.getElementById("save").textContent="UPDATE QUESTION";
- document.getElementById("question").value=q.question;
- document.getElementById("o1").value=q.option_1;document.getElementById("o2").value=q.option_2;
- document.getElementById("o3").value=q.option_3;document.getElementById("o4").value=q.option_4;
- document.getElementById("difficulty").value=q.difficulty;document.getElementById("time").value=q.time_limit;
- document.querySelectorAll('input[name="correct"]').forEach(r=>r.checked=Number(r.value)===q.correct_option);
- document.getElementById("overlay").classList.add("show");
-}
-
-document.getElementById("form").addEventListener("submit",async e=>{
- e.preventDefault();
- const correct=document.querySelector('input[name="correct"]:checked');
- if(!correct)return alert("Select the correct answer.");
- const data={question:document.getElementById("question").value.trim(),option_1:document.getElementById("o1").value.trim(),option_2:document.getElementById("o2").value.trim(),option_3:document.getElementById("o3").value.trim(),option_4:document.getElementById("o4").value.trim(),correct_option:Number(correct.value),difficulty:document.getElementById("difficulty").value,time_limit:Number(document.getElementById("time").value)};
- const r=await fetch(editingId?`/api/questions/${editingId}`:"/api/questions",{method:editingId?"PUT":"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});
- const x=await r.json();if(!r.ok||!x.success)return alert(x.message||"Save failed");
- closeModal();load();
-});
-
-async function deleteQ(id){
- if(!confirm("Delete this question?"))return;
- const r=await fetch(`/api/questions/${id}`,{method:"DELETE"});const x=await r.json();
- if(!r.ok||!x.success)return alert(x.message||"Delete failed");load();
-}
-
-async function submitBulk(){
- try{
-  const data=JSON.parse(document.getElementById("bulkText").value);
-  if(!Array.isArray(data))throw Error("JSON must be an array.");
-  const r=await fetch("/api/questions/bulk",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({questions:data})});
-  const x=await r.json();
-  if(!r.ok||!x.success)throw Error(x.message||"Import failed");
-  closeBulk();load();
-  alert(`${x.added} question(s) imported.${x.errors.length?" Some rows had errors.":""}`);
- }catch(e){alert(e.message)}
-}
-
-document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeModal();closeBulk()}});
-load();
-</script>
-</body>
-</html>
+async function events(){const r=await fetch("/api/events"),x=await r.json();if(!x.success)return;eventFilter.innerHTML='<option value="">ALL EVENTS</option>'+x.events.map(e=>`<option value="${e.id}">${e.event_name}</option>`).join("");eventId.innerHTML=x.events.map(e=>`<option value="${e.id}">${e.event_name}</option>`).join("");load()}
+eventFilter.onchange=load;
+async function load(){let u="/api/questions"+(eventFilter.value?"?event_id="+eventFilter.value:""),r=await fetch(u),x=await r.json();if(!x.success)return;list.innerHTML=x.questions.length?x.questions.map((q,i)=>`<article class="item"><small>${esc(q.event_name)} • ${q.difficulty} • ${q.time_limit}s</small><div class="q">${esc(q.question)}</div><div class="opts">${[1,2,3,4].map(n=>`<div class="opt ${q.correct_option===n?'correct':''}"><b>${n}.</b> ${esc(q["option_"+n])}</div>`).join("")}</div><div class="actions"><button class="btn" onclick='editQ(${JSON.stringify(q)})'>EDIT</button><button class="btn danger" onclick="delQ(${q.id})">DELETE</button></div></article>`).join(""):"<div class='item'>No questions for this selection.</div>"}
+function openM(){editing=null;form.reset();title.textContent="Add Question";overlay.classList.add("show")}
+function editQ(q){editing=q.id;title.textContent="Edit Question";eventId.value=q.event_id;question.value=q.question;o1.value=q.option_1;o2.value=q.option_2;o3.value=q.option_3;o4.value=q.option_4;difficulty.value=q.difficulty;time.value=q.time_limit;correct.value=q.correct_option;overlay.classList.add("show")}
+function closeM(){overlay.classList.remove("show")}
+form.onsubmit=async e=>{e.preventDefault();let body={event_id:Number(eventId.value),question:question.value,option_1:o1.value,option_2:o2.value,option_3:o3.value,option_4:o4.value,correct_option:Number(correct.value),difficulty:difficulty.value,time_limit:Number(time.value)};let r=await fetch(editing?"/api/questions/"+editing:"/api/questions",{method:editing?"PUT":"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}),x=await r.json();if(!r.ok||!x.success)return alert(x.message||"Save failed");closeM();load()}
+async function delQ(id){if(!confirm("Delete question?"))return;let r=await fetch("/api/questions/"+id,{method:"DELETE"}),x=await r.json();if(!r.ok||!x.success)return alert(x.message||"Delete failed");load()}
+function openBulk(){bulk.classList.add("show")}function closeBulk(){bulk.classList.remove("show")}
+async function submitBulk(){try{let arr=JSON.parse(bulkText.value);let r=await fetch("/api/questions/bulk",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({questions:arr})}),x=await r.json();if(!r.ok||!x.success)throw Error(x.message||"Import failed");alert(`${x.added} questions added${x.errors.length?"\n"+x.errors.join("\n"):""}`);closeBulk();load()}catch(e){alert(e.message)}}
+events();
+</script></body></html>
